@@ -1,12 +1,3 @@
-/**
- * This is an example of a basic node.js script that performs
- * the Authorization Code oAuth2 flow to authenticate against
- * the Spotify Accounts.
- *
- * For more information, read
- * https://developer.spotify.com/web-api/authorization-guide/#authorization_code_flow
- */
-
 var express = require('express'); // Express web server framework
 var request = require('request'); // "Request" library
 var querystring = require('querystring');
@@ -93,8 +84,6 @@ app.get('/callback', function(req, res) {
         var access_token = body.access_token,
             refresh_token = body.refresh_token;
 
-        
-
         let get_user_id = function(){
         	return new Promise(function(resolve, reject){
 	        	var user_info_call = {
@@ -113,7 +102,7 @@ app.get('/callback', function(req, res) {
         	var user_music_data = {data: []};
 
 	        var user_top_tracks_call = {
-	          url: 'https://api.spotify.com/v1/me/top/tracks?limit=100',
+	          url: 'https://api.spotify.com/v1/me/top/tracks?limit=5',
 	          headers: { 'Authorization': 'Bearer ' + access_token },
 	          json: true
 	        };
@@ -140,13 +129,34 @@ app.get('/callback', function(req, res) {
 	        });
 	    }
 
+	    let get_track_features = function(user_data){
+	        var track_ids = ''
+	        for (track in user_data.data){
+	        	track_ids = track_ids + user_data.data[track].spotify_track_id + ','
+	        }
+	        var get_track_features_call = {
+			          url: 'https://api.spotify.com/v1/audio-features?ids=' + track_ids,
+			          headers: { 'Authorization': 'Bearer ' + access_token },
+			          json: true
+			 };
+			return new Promise(function(resolve, reject){
+				request.get(get_track_features_call, function(error, response, body) {
+					for (feature in body.audio_features){
+						user_data.data[feature]['song_danceability'] = body.audio_features[feature].danceability
+						user_data.data[feature]['song_tempo'] = body.audio_features[feature].tempo
+					}
+		        	resolve(user_data)
+			    });
+			});
+		}
+
 	    let insertInto_user_data = function(user_data){
 	    	const client = new Client();
     		client.connect().then(() =>{
     			for (track_val in user_data.data){
-    				var sql = 'INSERT INTO public.user_data VALUES ($1, $2, $3, $4, $5, $6)'
+    				var sql = 'INSERT INTO public.user_data VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
     				var current_val = user_data.data[track_val]
-    				var params = [current_val.user_id, current_val.event_code,current_val.song_name, current_val.song_artists[0].name, current_val.song_popularity, current_val.spotify_track_id];
+    				var params = [current_val.user_id, current_val.event_code,current_val.song_name, current_val.song_artists[0].name, current_val.song_popularity, current_val.spotify_track_id, current_val.song_danceability, current_val.song_tempo];
     				client.query(sql, params);
     			}
     		})
@@ -154,35 +164,11 @@ app.get('/callback', function(req, res) {
 
 	    get_user_id().then(function(fromResolve){
 	    	get_user_music_data(fromResolve).then(function(user_data){
-	    		insertInto_user_data(user_data);
+	    		get_track_features(user_data).then(function(user_data_with_audio_feature){
+	    			insertInto_user_data(user_data_with_audio_feature)
+	    		})
 	    	})
-	    })
-	    /**
-	    get_user_top_tracks().then(function(result){
-	    	console.log(result)
-	    	var track_id = 0
-	    	while (track_id < result.tracks.length){
-	    		//console.log(result.tracks[track_id].spotify_track_id)
-	    		var song_features_call = {
-	          			url: 'https://api.spotify.com/v1/audio-features/' + result.tracks[track_id].spotify_track_id,
-	          			headers: { 'Authorization': 'Bearer ' + access_token },
-	          			json: true
-	        	};
-	        	let mypromise = new Promise(function(resolve, reject){
-	        		request.get(song_features_call, function(error, response, body){
-	    					song_danceability = body.danceability
-	    					song_tempo = body.tempo
-	    					resolve(song_danceability)
-    				});
-	        	})
-	        	mypromise.then(function(fromResolve){
-	        		console.log(fromResolve)
-	        	})
-	        	track_id = track_id + 1
-	    	}	
-	    })
-	    **/
-        
+	    })        
         // we can also pass the token to the browser to make requests from there
         res.redirect('/#' +
           querystring.stringify({
@@ -222,34 +208,6 @@ app.get('/refresh_token', function(req, res) {
     }
   });
 });
-
-
-//functions
-/**
-    		arr_danceability = [];
-    		for (track in user_top_tracks.tracks){
-    			var song_features_call = {
-          			url: 'https://api.spotify.com/v1/audio-features/' + user_top_tracks.tracks[track].spotify_track_id,
-          			headers: { 'Authorization': 'Bearer ' + access_token },
-          			json: true
-        		};
-    			console.log(user_top_tracks.tracks[track].spotify_track_id)
-
-    		
-				var promiseToCleanTheRoom = new Promise(function(resolve, reject){
-	    			request.get(song_features_call, function(error, response, body){
-	    				song_danceability = body.danceability
-	    				song_tempo = body.tempo
-	    				resolve(song_danceability)
-	    			});
-	    		});
-    			promiseToCleanTheRoom.then(function(fromResolve){
-    				arr_danceability.push(fromResolve)
-    				console.log(arr_danceability)
-    			})
-
-            }
-			**/
 
 console.log('Listening on 8888');
 app.listen(8888);
