@@ -1,14 +1,15 @@
-var express = require('express'); // Express web server framework
-var request = require('request'); // "Request" library
+var express = require('express');
+var request = require('request');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var promise = require('promise')
 var bodyparser = require('body-parser');
 var {Client} = require('pg');
 
-var client_id = '06ed32358de243939f15040c7b609049'; // Your client id
-var client_secret = 'abf66c65956b4a62b5b93ab096fd9960'; // Your secret
-var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
+var client_id = '06ed32358de243939f15040c7b609049';
+var client_secret = 'abf66c65956b4a62b5b93ab096fd9960';
+var redirect_uri = 'http://localhost:8888/callback';
+
 
 /**
  * Generates a random string containing numbers and letters
@@ -26,7 +27,6 @@ var generateRandomString = function(length) {
 };
 
 var stateKey = 'spotify_auth_state';
-
 var app = express();
 var eventcode = ""
 app.use(express.static(__dirname + '/public'))
@@ -35,9 +35,7 @@ app.use(express.static(__dirname + '/public'))
 app.get('/login', function(req, res) {
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
-  //var nameValue = app.getElementById("eventcode").value;
   eventcode = res.req.query.eventcode
-  // your application requests authorization
   var scope = 'user-read-private user-read-email user-top-read';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
@@ -51,9 +49,6 @@ app.get('/login', function(req, res) {
 
 
 app.get('/callback', function(req, res) {
-
-  // your application requests refresh and access tokens
-  // after checking the state parameter
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -102,7 +97,7 @@ app.get('/callback', function(req, res) {
         	var user_music_data = {data: []};
 
 	        var user_top_tracks_call = {
-	          url: 'https://api.spotify.com/v1/me/top/tracks?limit=5',
+	          url: 'https://api.spotify.com/v1/me/top/tracks?limit=50',
 	          headers: { 'Authorization': 'Bearer ' + access_token },
 	          json: true
 	        };
@@ -119,7 +114,8 @@ app.get('/callback', function(req, res) {
 		          		"user_id": user_id, 
 		          		"event_code": eventcode,
 		        		"song_name": song_name,
-		        		"song_artists": song_artists,
+		        		"song_artist": song_artists[0].name,
+		        		"song_artists_id": song_artists[0].id,
 		        		"song_popularity": song_popularity,
 		        		"spotify_track_id": song_id
 		    		});
@@ -150,14 +146,45 @@ app.get('/callback', function(req, res) {
 			});
 		}
 
-	    let insertInto_user_data = function(user_data){
+		let get_artist_genres = function(user_data){
+	        var artist_ids = ''
+	        for (track in user_data.data){
+	        	if (track == user_data.data.length-1){
+	        		artist_ids = artist_ids + user_data.data[track].song_artists_id
+	        	} else {
+	        		artist_ids = artist_ids + user_data.data[track].song_artists_id + ','
+	        	}
+	        }
+
+	        var get_artist_genres_call = {
+			          url: 'https://api.spotify.com/v1/artists?ids=' + artist_ids,
+			          headers: { 'Authorization': 'Bearer ' + access_token },
+			          json: true
+			 };
+			return new Promise(function(resolve, reject){
+				request.get(get_artist_genres_call, function(error, response, body) {
+					for (artist in body.artists){
+						user_data.data[artist]['song_genres'] = body.artists[artist].genres
+					}
+		        	resolve(user_data)
+			    });
+			});
+		}
+		var genres = ['pop', 'rap']
+	    let insertInto_user_data = function(user_data, genres){
 	    	const client = new Client();
     		client.connect().then(() =>{
     			for (track_val in user_data.data){
-    				var sql = 'INSERT INTO public.user_data VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
-    				var current_val = user_data.data[track_val]
-    				var params = [current_val.user_id, current_val.event_code,current_val.song_name, current_val.song_artists[0].name, current_val.song_popularity, current_val.spotify_track_id, current_val.song_danceability, current_val.song_tempo];
-    				client.query(sql, params);
+    				for(genre in genres){
+    					if (user_data.data[track_val].song_genres.includes(genres[genre])){
+    						var sql = 'INSERT INTO public.user_data VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
+    						var current_val = user_data.data[track_val]
+    						var params = [current_val.user_id, current_val.event_code,current_val.song_name, current_val.song_artist, current_val.song_popularity, current_val.song_danceability, current_val.song_tempo, current_val.song_genres];
+    						client.query(sql, params);
+    						break;
+    					}
+    				}
+    				continue
     			}
     		})
 	    }
@@ -165,7 +192,9 @@ app.get('/callback', function(req, res) {
 	    get_user_id().then(function(fromResolve){
 	    	get_user_music_data(fromResolve).then(function(user_data){
 	    		get_track_features(user_data).then(function(user_data_with_audio_feature){
-	    			insertInto_user_data(user_data_with_audio_feature)
+	    			get_artist_genres(user_data_with_audio_feature).then(function(user_data_with_everything){
+	    				insertInto_user_data(user_data_with_everything, genres)
+	    			})
 	    		})
 	    	})
 	    })        
