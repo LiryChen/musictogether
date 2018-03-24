@@ -10,12 +10,6 @@ var client_id = '06ed32358de243939f15040c7b609049';
 var client_secret = 'abf66c65956b4a62b5b93ab096fd9960';
 var redirect_uri = 'http://localhost:8888/callback';
 
-
-/**
- * Generates a random string containing numbers and letters
- * @param  {number} length The length of the string
- * @return {string} The generated string
- */
 var generateRandomString = function(length) {
   var text = '';
   var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -32,19 +26,49 @@ var eventcode = ""
 app.use(express.static(__dirname + '/public'))
    .use(cookieParser());
 
+app.get('/host', function(req, res){
+	res.sendFile(__dirname + '/public/host.html')
+})
+
+app.get('/platform', function(req, res){
+  const client = new Client();
+  client.connect().then(() =>{
+    var sql = 'INSERT INTO public.event_data VALUES ($1, $2, $3, $4, $5, $6)'
+    var params = [res.req.query.eventname, res.req.query.eventlocation, res.req.query.duration, res.req.query.eventtype, res.req.query.genres, res.req.query.eventcode];
+    client.query(sql, params);
+  })
+
+  
+  res.sendFile(__dirname + '/public/platform.html')
+})
+
 app.get('/login', function(req, res) {
-  var state = generateRandomString(16);
-  res.cookie(stateKey, state);
   eventcode = res.req.query.eventcode
-  var scope = 'user-read-private user-read-email user-top-read';
-  res.redirect('https://accounts.spotify.com/authorize?' +
-    querystring.stringify({
-      response_type: 'code',
-      client_id: client_id,
-      scope: scope,
-      redirect_uri: redirect_uri,
-      state: state
-    }));
+  const client = new Client();
+  client.connect().then(() =>{
+    var sql = 'SELECT event_code FROM event_data WHERE event_code = $1'
+    var param = [eventcode]
+    client.query(sql, param).then(function(events){
+      if(events.rowCount == 0){
+        console.log('Event code doesnt exist')
+        res.sendFile(__dirname + '/public/index.html')
+        //todo: add a javascript alert telling the user to give a valid code and resubmit 
+      } else {
+        var state = generateRandomString(16);
+        res.cookie(stateKey, state);
+        var scope = 'user-read-private user-read-email user-top-read';
+        res.redirect('https://accounts.spotify.com/authorize?' +
+          querystring.stringify({
+            response_type: 'code',
+            client_id: client_id,
+            scope: scope,
+            redirect_uri: redirect_uri,
+            state: state
+        }));
+      }
+    })
+  })
+  
 });
 
 
@@ -198,7 +222,6 @@ app.get('/callback', function(req, res) {
 	    		})
 	    	})
 	    })        
-        // we can also pass the token to the browser to make requests from there
         res.redirect('/#' +
           querystring.stringify({
             access_token: access_token,
@@ -213,6 +236,8 @@ app.get('/callback', function(req, res) {
     });
   }
 });
+
+
 
 app.get('/refresh_token', function(req, res) {
 
