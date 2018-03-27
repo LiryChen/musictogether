@@ -1,0 +1,52 @@
+doctype html
+html
+  head
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    link(rel='stylesheet', href='https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css')
+    script(src='https://code.jquery.com/jquery-1.11.3.min.js')
+    script(src='https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js')
+  body#wrapper
+     
+    form(action='/platform')
+      | Event Name:
+      br
+      input(type='text', name='eventname', required='')
+      |       Event Location:
+      br
+      input(type='text', name='eventlocation', required='')
+      label(for='duration') Event Duration:
+      input#duration(type='range', name='duration', value='120', min='0', max='240', data-show-value='true')
+      |       Event Type:
+      br
+      input(type='text', name='eventtype', required='')
+      |       Event Genres:
+      br
+      input#rap(type='checkbox', name='genres', value='rap')
+      label(for='rap') Rap
+      input(type='checkbox', name='genres', id='hip hop', value='hip hop')
+      label(for='hip hop') Hip Hop
+      input(type='checkbox', name='genres', id='r&b', value='r&b')
+      label(for='r&b') R and B
+      input#pop(type='checkbox', name='genres', value='pop')
+      label(for='pop') Pop
+      input#rock(type='checkbox', name='genres', value='rock')
+      label(for='rock') Rock
+      input#country(type='checkbox', name='genres', value='country')
+      label(for='country') Country
+      input#edm(type='checkbox', name='genres', value='edm')
+      label(for='edm') EDM
+      input(type='checkbox', name='genres', id='trap music', value='trap music')
+      label(for='trap music') Trap Music
+      |       Event Code:
+      br
+      input(type='text', name='eventcode', required='')
+      |
+      ul
+      div.form-group
+        p Select What Playlist You Want to Use:
+          each val in playlists
+            div.radio-inline
+              input.radio-input(type='radio', name=`playlists[0]`, value=val, id=`create-shift-${val}`)
+              label(for=`create-shift-${val}`)=val
+
+      button(name='submit', type='submit', value='submit') Create Event
