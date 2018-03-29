@@ -29,8 +29,8 @@ var generateRandomString = function(length) {
   return text;
 };
 
-app.set('views', path.join(__dirname, 'public'));
-app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, '/public/pages'));
+
 
 app.use(express.static(__dirname + '/public'))
    .use(cookieParser());
@@ -50,6 +50,7 @@ app.get('/host', function(req, res){
   }));
 })
 
+
 app.get('/platform', function(req, res){
   const client = new Client();
   client.connect().then(() =>{
@@ -61,14 +62,30 @@ app.get('/platform', function(req, res){
       spotifyOperations.methods.get_hosts_songs(host_id, req.query.playlists, global_access_token, req.query.eventcode).then(function(host_songs){
         spotifyOperations.methods.get_track_features(host_songs, global_access_token).then(function(host_data_with_audio_features){
           dbOperations.methods.insertInto_host_data(host_data_with_audio_features)
-          dbOperations.methods.retrieve_user_data().then(function(user_data){
-            console.log(user_data)
-          })
+          res.render(__dirname + '/public/pages/dashboard.pug')
+          //dbOperations.methods.retrieve_user_data().then(function(user_data){
+            //console.log(user_data)
+          //})
         })
       })
     })
-  })
-  res.sendFile(__dirname + '/public/platform.html')
+  }) 
+})
+
+app.get('/dashboard.pug', function(req, res){
+  res.render(__dirname + '/public/pages/dashboard.pug')
+})
+app.get('/importedsongs.pug', function(req, res){
+  res.render(__dirname + '/public/pages/importedsongs.pug')
+})
+app.get('/djprofile.pug', function(req, res){
+  res.render(__dirname + '/public/pages/djprofile.pug')
+})
+app.get('/smartplaylist.pug', function(req, res){
+  res.render(__dirname + '/public/pages/smartplaylist.pug')
+})
+app.get('/login.pug', function(req, res){
+  res.render(__dirname + '/public/pages/login.pug')
 })
 
 app.get('/login', function(req, res) {
@@ -79,6 +96,7 @@ app.get('/login', function(req, res) {
     var sql = 'SELECT event_code FROM event_data WHERE event_code = $1'
     var param = [eventcode]
     client.query(sql, param).then(function(events){
+
       if(events.rowCount == 0){
         console.log('Event code doesnt exist')
         res.sendFile(__dirname + '/public/index.html')
@@ -138,7 +156,8 @@ app.get('/callback', function(req, res) {
     	    			spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, access_token).then(function(user_data_with_everything){
                   dbOperations.methods.get_genres(eventcode).then(function(genres){
                     dbOperations.methods.insertInto_user_data(user_data_with_everything, genres)
-                    res.sendFile(__dirname + '/public/platform.html')
+                    //res.sendFile(__dirname + '/public/platform.html')
+                    res.render(__dirname + '/public/pages/dashboard.pug')
                   })
     	    			})
     	    		})
@@ -147,7 +166,7 @@ app.get('/callback', function(req, res) {
         } else { //current_state == 'host'
           spotifyOperations.methods.get_user_id(access_token).then(function(user_id){
             dbOperations.methods.get_host_playlists(access_token).then(function(playlists){
-              res.render('host.pug', {playlists: spotifyOperations.methods.format_playlist(playlists)})
+              res.render(__dirname + '/public/pages/host.pug', {playlists: spotifyOperations.methods.format_playlist(playlists)})
             })
           })
         }
