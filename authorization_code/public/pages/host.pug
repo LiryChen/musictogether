@@ -14,8 +14,13 @@ html
       label(for='duration') Event Duration:
       input#duration(type='range', name='duration', value='120', min='0', max='240', data-show-value='true')
       |       Event Type:
-      br
-      input(type='text', name='eventtype', required='')
+      .col-xs-12
+        select#propertyType.select.form-control.input-lg( name='eventtype')
+          option(value='Club') Club
+          option(value='House Party') House Party
+          option(value='Wedding') Wedding
+          option(value='Road Trip') Road Trip
+          option(value='Bar mitzvah') Bar mitzvah
       |       Event Genres:
       br
       input#rap(type='checkbox', name='genres', value='rap')

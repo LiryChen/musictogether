@@ -12,7 +12,7 @@ var methods = {
 		return new Promise(function(resolve, reject){
 		  const client = new Client();
 		  var sql = 'SELECT user_data.song_name, song_artists, COUNT(song_name), song_tempo, song_popularity, song_danceability FROM user_data WHERE event_code = $1 GROUP BY song_name, song_artists, song_tempo, song_popularity, song_danceability'
-		    var params = ['clubstoryville']
+		    var params = ['pctformal']
 		  client.connect().then(() =>{
 		    
 		    client.query(sql, params).then(res => {
