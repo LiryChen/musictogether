@@ -42,16 +42,16 @@ app.get('/', function(req, res){
 })
 
 app.get('/db', function(req, res){
-  dbOperations.methods.retrieve_user_data('pctformal').then(function(fromResolve){
+  dbOperations.methods.retrieve_user_data(eventcode).then(function(fromResolve){
     var temp = {"data": []}
     for (row in fromResolve.rows){
       temp.data.push({
-        "song_name": fromResolve.rows[row].song_name,  
-        "song_artists": fromResolve.rows[row].song_artists,
-        "count": fromResolve.rows[row].count,
-        "song_tempo": fromResolve.rows[row].song_tempo,
-        "song_popularity": fromResolve.rows[row].song_popularity,
-        "song_danceability": fromResolve.rows[row].song_danceability
+        "Title": fromResolve.rows[row].song_name,  
+        "Artist": fromResolve.rows[row].song_artists,
+        "Count": fromResolve.rows[row].count,
+        "Tempo": fromResolve.rows[row].song_tempo,
+        "Popularity": fromResolve.rows[row].song_popularity,
+        "Danceability": fromResolve.rows[row].song_danceability
       });
     }
     temp = JSON.stringify(temp)
@@ -76,6 +76,10 @@ app.get('/host', function(req, res){
 
 
 app.get('/platform', function(req, res){
+  if ((typeof req.query.genres) == 'string'){
+    req.query.genres = [req.query.genres]
+  }
+  console.log(req.query.genres)
   global_eventtype = req.query.eventtype
   eventcode = req.query.eventcode
   global_eventduration = req.query.duration

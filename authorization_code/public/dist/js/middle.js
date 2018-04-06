@@ -11,19 +11,17 @@ function refresh_user_data() {
 	}
 	$(document).ready(function() {
 		$.ajax(settings).done(function (response) {
-			
-		  $('#example').DataTable({
+		  table = $('#example').DataTable({
 	        "ajax": "db",
 	        "columns": [
-		            { "data": "song_name" },
-		            { "data": "song_artists" },
-		            { "data": "count" },
-		            { "data": "song_tempo" },
-		            { "data": "song_popularity" },
-		            { "data": "song_danceability" }
+		            { "data": "Title" },
+		            { "data": "Artist" },
+		            { "data": "Count" },
+		            { "data": "Tempo" },
+		            { "data": "Popularity" },
+		            { "data": "Danceability" }
 	        	]
 	    	});
-
 		});
 	});              
 }

@@ -11,8 +11,10 @@ html
     link(href='../vendor/bootstrap/css/bootstrap.min.css', rel='stylesheet')
     // MetisMenu CSS
     link(href='../vendor/metisMenu/metisMenu.min.css', rel='stylesheet')
+    //link(href='../vendor/metisMenu/css.css', rel='stylesheet')
     // Custom CSS
     link(href='../dist/css/sb-admin-2.css', rel='stylesheet')
+
     // Custom Fonts
     link(href='../vendor/font-awesome/css/font-awesome.min.css', rel='stylesheet', type='text/css')
     // HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries
@@ -21,63 +23,113 @@ html
       if lt IE 9
       script(src='https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js')
       script(src='https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js')
-  body#wrapper  
-    form(action='/platform')
-      | Event Name:
-      br
-      input(type='text', name='eventname', required='')
-      br
-      |       Event Location:
-      br
-      input(type='text', name='eventlocation', required='')
-      br
-      label(for='duration') Event Duration:
-      input#duration(type='range', name='duration', value='120', min='0', max='240', data-show-value='true')
-      |       Event Type:
-      .col-xs-12
-        select#propertyType.select.form-control.input-lg( name='eventtype')
-          option(value='Club') Club
-          option(value='House Party') House Party
-          option(value='Wedding') Wedding
-          option(value='Road Trip') Road Trip
-          option(value='Bar mitzvah') Bar mitzvah
-      br    
-      |       Event Genres:
-      br
-      input#rap(type='checkbox', name='genres', value='rap')
-      label(for='rap') Rap
-      input(type='checkbox', name='genres', id='hip hop', value='hip hop')
-      label(for='hip hop') Hip Hop
-      input(type='checkbox', name='genres', id='r&b', value='r&b')
-      label(for='r&b') R and B
-      input#pop(type='checkbox', name='genres', value='pop')
-      label(for='pop') Pop
-      input#rock(type='checkbox', name='genres', value='rock')
-      label(for='rock') Rock
-      input#country(type='checkbox', name='genres', value='country')
-      label(for='country') Country
-      input#edm(type='checkbox', name='genres', value='edm')
-      label(for='edm') EDM
-      input(type='checkbox', name='genres', id='trap music', value='trap music')
-      label(for='trap music') Trap Music
-      br
-      |       Event Code:
-      br
-      input(type='text', name='eventcode', required='')
-      |
-      ul
-      div.form-group
-        p Select What Playlist You Want to Use:
-          each val in playlists
-            div.radio-inline
-              input.radio-input(type='radio', name=`playlists[0]`, value=val, id=`create-shift-${val}`)
-              label(for=`create-shift-${val}`)=val
 
-      button(name='submit', type='submit', value='submit') Create Event
-script(src='../vendor/jquery/jquery.min.js')
-  // Bootstrap Core JavaScript
-script(src='../vendor/bootstrap/js/bootstrap.min.js')
-  // Metis Menu Plugin JavaScript
-script(src='../vendor/metisMenu/metisMenu.min.js')
-  // Custom Theme JavaScript
-script(src='../dist/js/sb-admin-2.js')
+  body#wrapper
+    .container
+      .row
+        .col-md-6.col-md-offset-3
+          .login-panel.panel.panel-default
+            .panel-body
+              form(action='/platform')
+                | Event Name:
+                br
+                input.form-control(type='text', name='eventname', required='')
+                br
+                |       Event Location:
+                br
+                input.form-control(type='text', name='eventlocation', required='')
+                br
+                label(for='duration') Event Duration:
+                .range-slider
+                  input.range-slider__range(type='range', value='250', min='0', max='600', step='5', name='duration')
+                  span.range-slider__value 0
+                br
+                |       Event Type:
+                select#propertyType.form-control(name='eventtype')
+                  option(value='Club') Club
+                  option(value='House Party') House Party
+                  option(value='Wedding') Wedding
+                  option(value='Road Trip') Road Trip
+                  option(value='Bar mitzvah') Bar mitzvah
+                br
+                |       Event Genres:
+                br
+                input#rap(type='checkbox', name='genres', value='rap')
+                label(for='rap') Rap
+                input(type='checkbox', name='genres', id='hip hop', value='hip hop')
+                label(for='hip hop') Hip Hop
+                input(type='checkbox', name='genres', id='r&b', value='r&b')
+                label(for='r&b') R and B
+                input#pop(type='checkbox', name='genres', value='pop')
+                label(for='pop') Pop
+                input#rock(type='checkbox', name='genres', value='rock')
+                label(for='rock') Rock
+                input#country(type='checkbox', name='genres', value='country')
+                label(for='country') Country
+                input#edm(type='checkbox', name='genres', value='edm')
+                label(for='edm') EDM
+                input(type='checkbox', name='genres', id='trap music', value='trap music')
+                label(for='trap music') Trap Music
+                input#dance_pop(type='checkbox', name='genres', value='dance pop')
+                label(for='dance_pop') Dance Pop
+                input#pop_rap(type='checkbox', name='genres', value='pop rap')
+                label(for='pop_rap') Pop Rap
+                input#post-teen_pop(type='checkbox', name='genres', value='post-teen pop')
+                label(for='post-teen_pop') Post-Teen Pop
+                input#modern_rock(type='checkbox', name='genres', value='modern rock')
+                label(for='modern_rock') Modern Rock
+                input#southern_hip_hop(type='checkbox', name='genres', value='southern hip hop')
+                label(for='southern_hip_hop') Southern Hip Hop
+                input#latin(type='checkbox', name='genres', value='latin')
+                label(for='latin') Lating
+                input#tropical_house(type='checkbox', name='genres', value='tropical House')
+                label(for='tropical_house') Tropical House
+                input#classic_rock(type='checkbox', name='genres', value='classic rock')
+                label(for='classic_rock') Classic Rock
+                input#indie_rnb(type='checkbox', name='genres', value='indie r&b')
+                label(for='indie_rnb') Indie R&B
+                input#album_rock(type='checkbox', name='genres', value='album rock')
+                label(for='album_rock') Album Rock
+                input#reggaeton(type='checkbox', name='genres', value='reggaeton')
+                label(for='reggaeton') Reggaeton
+                input#pop_rock(type='checkbox', name='genres', value='pop rock')
+                label(for='pop_rock') Pop Rock
+                input#post-grunge(type='checkbox', name='genres', value='post-grunge')
+                label(for='post-grunge') Post-Grunge
+                br
+                |       Event Code:
+                br
+                input.form-control(type='text', name='eventcode', required='')
+                br
+                ul
+                div.form-group
+                  p Select What Playlist You Want to Use:
+                    each val in playlists
+                      div.radio-inline
+                        input.radio-input(type='radio', name=`playlists[0]`, value=val, id=`create-shift-${val}`)
+                        label(for=`create-shift-${val}`)=val
+                center
+                  button.btn.btn-default(name='submit', type='submit', value='submit') Create Event
+  script(src='../vendor/jquery/jquery.min.js')
+    <!-- Bootstrap Core JavaScript-->
+  script(src='../vendor/bootstrap/js/bootstrap.min.js')
+    <!-- Metis Menu Plugin JavaScript-->
+  script(src='../vendor/metisMenu/metisMenu.min.js')
+    <!-- Custom Theme JavaScript-->
+  script(src='../dist/js/sb-admin-2.js')
+  script.
+    var rangeSlider = function(){
+    var slider = $('.range-slider'),
+    range = $('.range-slider__range'),
+    value = $('.range-slider__value');
+    slider.each(function(){
+    value.each(function(){
+    var value = $(this).prev().attr('value');
+    $(this).html(value);
+    });
+    range.on('input', function(){
+    $(this).next(value).html(this.value);
+    });
+    });
+    };
+    rangeSlider();
