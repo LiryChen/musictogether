@@ -38,6 +38,25 @@ app.use(express.static(__dirname + '/public'))
 
 app.get('/', function(req, res){
   res.render(__dirname + '/public/pages/login.pug')
+  //res.sendFile(__dirname + '/public/pages/login.html')
+})
+
+app.get('/db', function(req, res){
+  dbOperations.methods.retrieve_user_data('pctformal').then(function(fromResolve){
+    var temp = {"data": []}
+    for (row in fromResolve.rows){
+      temp.data.push({
+        "song_name": fromResolve.rows[row].song_name,  
+        "song_artists": fromResolve.rows[row].song_artists,
+        "count": fromResolve.rows[row].count,
+        "song_tempo": fromResolve.rows[row].song_tempo,
+        "song_popularity": fromResolve.rows[row].song_popularity,
+        "song_danceability": fromResolve.rows[row].song_danceability
+      });
+    }
+    temp = JSON.stringify(temp)
+    res.send(temp)
+  })
 })
 
 app.get('/host', function(req, res){
@@ -84,9 +103,7 @@ app.get('/dashboard.pug', function(req, res){
 app.get('/importedsongs.pug', function(req, res){
 	console.log('current state' + global_state)
   res.render(__dirname + '/public/pages/importedsongs.pug')
-  dbOperations.methods.retrieve_user_data().then(function(fromResolve){
-  	console.log(fromResolve.rows)
-  })
+  
 })
 app.get('/djprofile.pug', function(req, res){
 	console.log('current state' + global_state)

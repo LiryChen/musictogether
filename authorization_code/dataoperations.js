@@ -8,11 +8,11 @@ var {Client} = require('pg');
 var path = require('path')
 
 var methods = {
-	retrieve_user_data: function(){
+	retrieve_user_data: function(event_code){
 		return new Promise(function(resolve, reject){
 		  const client = new Client();
 		  var sql = 'SELECT user_data.song_name, song_artists, COUNT(song_name), song_tempo, song_popularity, song_danceability FROM user_data WHERE event_code = $1 GROUP BY song_name, song_artists, song_tempo, song_popularity, song_danceability'
-		    var params = ['pctformal']
+		    var params = [event_code]
 		  client.connect().then(() =>{
 		    
 		    client.query(sql, params).then(res => {
