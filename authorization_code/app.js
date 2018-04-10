@@ -8,18 +8,19 @@ var {Client} = require('pg');
 var path = require('path')
 var dbOperations = require('./dataoperations.js')
 var spotifyOperations = require('./spotifyoperations.js')
+var app = express();
 
 var client_id = '06ed32358de243939f15040c7b609049';
 var client_secret = 'abf66c65956b4a62b5b93ab096fd9960';
 var redirect_uri = 'http://localhost:8888/callback';
 var stateKey = 'spotify_auth_state';
-var app = express();
+
 var global_state = ''
 var global_authOptions = {}
 var global_access_token = ''
 var global_eventduration = 0
 var global_eventtype = ''
-var eventcode = ''
+var global_eventcode = ''
 
 
 var generateRandomString = function(length) {
@@ -38,11 +39,10 @@ app.use(express.static(__dirname + '/public'))
 
 app.get('/', function(req, res){
   res.render(__dirname + '/public/pages/login.pug')
-  //res.sendFile(__dirname + '/public/pages/login.html')
 })
 
 app.get('/db', function(req, res){
-  dbOperations.methods.retrieve_user_data(eventcode).then(function(fromResolve){
+  dbOperations.methods.retrieve_user_data(global_eventcode).then(function(fromResolve){
     var temp = {"data": []}
     for (row in fromResolve.rows){
       temp.data.push({
@@ -63,7 +63,7 @@ app.get('/host', function(req, res){
   global_state = 'host'
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
-  var scope = 'user-read-private user-read-email user-top-read playlist-read-private';
+  var scope = 'user-library-read user-library-modify user-read-private user-read-email user-top-read playlist-read-private';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -81,7 +81,7 @@ app.get('/platform', function(req, res){
   }
   console.log(req.query.genres)
   global_eventtype = req.query.eventtype
-  eventcode = req.query.eventcode
+  global_eventcode = req.query.eventcode
   global_eventduration = req.query.duration
   const client = new Client();
   client.connect().then(() =>{
@@ -98,6 +98,26 @@ app.get('/platform', function(req, res){
       })
     })
   }) 
+})
+
+app.get('/userinput', function(req, res){
+  console.log(req.query)
+	if (req.query["top_songs"] != undefined){
+		spotifyOperations.methods.get_user_id(global_access_token).then(function(fromResolve){
+    	    	spotifyOperations.methods.get_user_music_data(fromResolve, global_access_token, global_eventcode).then(function(user_data){
+    	    		spotifyOperations.methods.get_track_features(user_data, global_access_token).then(function(user_data_with_audio_feature){
+    	    			spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, global_access_token).then(function(user_data_with_everything){
+                  dbOperations.methods.get_genres(global_eventcode).then(function(genres){
+                    dbOperations.methods.insertInto_user_data(user_data_with_everything, genres)
+                  })
+    	    			})
+    	    		})
+    	    	})
+    	    }) 
+
+	}
+	res.render(__dirname + '/public/pages/dashboard.pug')
+
 })
 
 app.get('/dashboard.pug', function(req, res){
@@ -124,11 +144,11 @@ app.get('/login.pug', function(req, res){
 
 app.get('/login', function(req, res) {
   global_state = 'user'
-  eventcode = res.req.query.eventcode
+  global_eventcode = res.req.query.eventcode
   const client = new Client();
   client.connect().then(() =>{
     var sql = 'SELECT event_code, event_type FROM event_data WHERE event_code = $1'
-    var param = [eventcode]
+    var param = [global_eventcode]
     client.query(sql, param).then(function(events){
       
       if(events.rowCount == 0){
@@ -138,7 +158,7 @@ app.get('/login', function(req, res) {
         global_eventtype = events.rows[0].event_type
         var state = generateRandomString(16);
         res.cookie(stateKey, state);
-        var scope = 'user-read-private user-read-email user-top-read';
+        var scope = 'user-library-read user-library-modify user-read-private user-read-email user-top-read playlist-read-private';
         res.redirect('https://accounts.spotify.com/authorize?' +
           querystring.stringify({
             response_type: 'code',
@@ -184,19 +204,11 @@ app.get('/callback', function(req, res) {
             refresh_token = body.refresh_token;
         global_access_token = access_token
         if (global_state == 'user'){
-    	    spotifyOperations.methods.get_user_id(access_token).then(function(fromResolve){
-    	    	spotifyOperations.methods.get_user_music_data(fromResolve, access_token, eventcode).then(function(user_data){
-    	    		spotifyOperations.methods.get_track_features(user_data, access_token).then(function(user_data_with_audio_feature){
-    	    			spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, access_token).then(function(user_data_with_everything){
-                  dbOperations.methods.get_genres(eventcode).then(function(genres){
-                    dbOperations.methods.insertInto_user_data(user_data_with_everything, genres)
-                    //res.sendFile(__dirname + '/public/platform.html')
-                    res.render(__dirname + '/public/pages/dashboard.pug')
-                  })
-    	    			})
-    	    		})
-    	    	})
-    	    }) 
+        	spotifyOperations.methods.get_user_id(access_token).then(function(user_id){
+            	dbOperations.methods.get_host_playlists(access_token).then(function(playlists){
+              		res.render(__dirname + '/public/pages/userinput.pug', {playlists: spotifyOperations.methods.format_playlist(playlists)})
+            	})
+          	})	
         } else { //global_state == 'host'
           spotifyOperations.methods.get_user_id(access_token).then(function(user_id){
             dbOperations.methods.get_host_playlists(access_token).then(function(playlists){

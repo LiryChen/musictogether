@@ -34,7 +34,6 @@ var methods = {
                 var song_artists = body.items[item].artists
                 var song_popularity = body.items[item].popularity
                 var song_id = body.items[item].id
-                var song_features = []
                 user_music_data.data.push({
                   "user_id": user_id, 
                   "event_code": eventcode,
@@ -95,7 +94,6 @@ var methods = {
                 var song_artists = body.items[item].artists
                 var song_popularity = body.items[item].popularity
                 var song_id = body.items[item].id
-                var song_features = []
                 user_music_data.data.push({
                   "user_id": user_id, 
                   "event_code": eventcode,
@@ -162,15 +160,15 @@ var methods = {
           return formatted_data
         },
         get_hosts_songs: function(host_id, host_playlist, global_access_token, event_code){
-    var host_music_data = {data: []};
-    var split_host_playlist = host_playlist[0].split(';')
-    var playlist_id = split_host_playlist[split_host_playlist.length-2]
-    var playlist_owner = split_host_playlist[split_host_playlist.length-1]
-    var get_hosts_songs_call = {
-      url: 'https://api.spotify.com/v1/users/'+playlist_owner+'/playlists/'+playlist_id+'/tracks',
-      headers: { 'Authorization': 'Bearer ' + global_access_token },
-      json: true
-    };
+          var host_music_data = {data: []};
+          var split_host_playlist = host_playlist[0].split(';')
+          var playlist_id = split_host_playlist[split_host_playlist.length-2]
+          var playlist_owner = split_host_playlist[split_host_playlist.length-1]
+          var get_hosts_songs_call = {
+            url: 'https://api.spotify.com/v1/users/'+playlist_owner+'/playlists/'+playlist_id+'/tracks',
+            headers: { 'Authorization': 'Bearer ' + global_access_token },
+            json: true
+          };
     return new Promise(function(resolve, reject){
       request.get(get_hosts_songs_call, function(error, response, body) {
         for (item in body.items){
