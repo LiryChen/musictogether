@@ -128,6 +128,35 @@ var methods = {
             });
           });
         },
+        get_user_saved_songs: function(user_id, access_token, eventcode) {
+        var user_saved_songs = {data: []};
+        var user_saved_songs_call = {
+          url: 'https://api.spotify.com/v1/me/tracks?limit=50',
+          headers: { 'Authorization': 'Bearer ' + access_token },
+          json: true
+        };
+        return new Promise(function(resolve, reject){
+          request.get(user_saved_songs_call, function(error, response, body) {
+            for (item in body.items){
+
+              var song_name = body.items[item].track.name
+              var song_artists = body.items[item].track.artists
+              var song_popularity = body.items[item].track.popularity
+              var song_id = body.items[item].track.id
+              user_saved_songs.data.push({
+                "user_id": user_id, 
+                "event_code": eventcode,
+                "song_name": song_name,
+                "song_artist": song_artists[0].name,
+                "song_artists_id": song_artists[0].id,
+                "song_popularity": song_popularity,
+                "spotify_track_id": song_id
+              });
+            }
+            resolve(user_saved_songs)
+          });
+        });
+      },
         get_artist_genres: function(user_data, access_token){
           var artist_ids = ''
           for (track in user_data.data){
@@ -179,6 +208,38 @@ var methods = {
           var song_id = track.id
           host_music_data.data.push({
             "host_id": host_id, 
+            "event_code": event_code,
+            "song_name": song_name,
+            "song_artist": song_artists[0].name,
+            "song_artists_id": song_artists[0].id,
+            "song_popularity": song_popularity,
+            "spotify_track_id": song_id
+          });
+       }
+       resolve(host_music_data)
+      });
+    });
+  },
+    get_user_playlist_songs: function(user_id, host_playlist, global_access_token, event_code){
+          var host_music_data = {data: []};
+          var split_host_playlist = host_playlist[0].split(';')
+          var playlist_id = split_host_playlist[split_host_playlist.length-2]
+          var playlist_owner = split_host_playlist[split_host_playlist.length-1]
+          var get_hosts_songs_call = {
+            url: 'https://api.spotify.com/v1/users/'+playlist_owner+'/playlists/'+playlist_id+'/tracks',
+            headers: { 'Authorization': 'Bearer ' + global_access_token },
+            json: true
+          };
+    return new Promise(function(resolve, reject){
+      request.get(get_hosts_songs_call, function(error, response, body) {
+        for (item in body.items){
+          var track = body.items[item].track
+          var song_name = track.name
+          var song_artists = track.artists
+          var song_popularity = track.popularity
+          var song_id = track.id
+          host_music_data.data.push({
+            "user_id": user_id, 
             "event_code": event_code,
             "song_name": song_name,
             "song_artist": song_artists[0].name,

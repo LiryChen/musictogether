@@ -38,11 +38,10 @@ html
                 br
                 input(type="checkbox", name="saved_songs", value="saved_songs") 
                 |  Your Saved Songs
-                ul
                 div.form-group
                     each val in playlists
-                      div.checkbox-inline
-                        input.checkbox-input(type='checkbox', name=`playlists[0]`, value=val, id=`create-shift-${val}`)
+                      div.radio-inline
+                        input.radio-input(type='radio', name=`playlists[0]`, value=val, id=`create-shift-${val}`)
                         label(for=`create-shift-${val}`)=val
                 center
                   button.btn.btn-info.btn-lg.btn-block(name='submit', type='submit', value='submit') Submit

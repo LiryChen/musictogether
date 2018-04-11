@@ -1,3 +1,4 @@
+//npm variables
 var express = require('express');
 var request = require('request');
 var querystring = require('querystring');
@@ -10,11 +11,13 @@ var dbOperations = require('./dataoperations.js')
 var spotifyOperations = require('./spotifyoperations.js')
 var app = express();
 
+//spotify connection
 var client_id = '06ed32358de243939f15040c7b609049';
 var client_secret = 'abf66c65956b4a62b5b93ab096fd9960';
 var redirect_uri = 'http://localhost:8888/callback';
 var stateKey = 'spotify_auth_state';
 
+//global variables
 var global_state = ''
 var global_authOptions = {}
 var global_access_token = ''
@@ -39,6 +42,9 @@ app.use(express.static(__dirname + '/public'))
 
 app.get('/', function(req, res){
   res.render(__dirname + '/public/pages/login.pug')
+
+  
+
 })
 
 app.get('/db', function(req, res){
@@ -102,22 +108,71 @@ app.get('/platform', function(req, res){
 
 app.get('/userinput', function(req, res){
   console.log(req.query)
-	if (req.query["top_songs"] != undefined){
-		spotifyOperations.methods.get_user_id(global_access_token).then(function(fromResolve){
-    	    	spotifyOperations.methods.get_user_music_data(fromResolve, global_access_token, global_eventcode).then(function(user_data){
-    	    		spotifyOperations.methods.get_track_features(user_data, global_access_token).then(function(user_data_with_audio_feature){
-    	    			spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, global_access_token).then(function(user_data_with_everything){
+
+  spotifyOperations.methods.get_user_id(global_access_token).then(function(id){
+    dbOperations.methods.hasAlreadyInputted(id).then(function(num_user_ids){
+      if (num_user_ids == 0){ //change for testing
+        if (req.query["top_songs"] != undefined){
+          spotifyOperations.methods.get_user_id(global_access_token).then(function(fromResolve){
+            spotifyOperations.methods.get_user_music_data(fromResolve, global_access_token, global_eventcode).then(function(user_data){
+              spotifyOperations.methods.get_track_features(user_data, global_access_token).then(function(user_data_with_audio_feature){
+                spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, global_access_token).then(function(user_data_with_everything){
                   dbOperations.methods.get_genres(global_eventcode).then(function(genres){
-                    dbOperations.methods.insertInto_user_data(user_data_with_everything, genres)
+                    dbOperations.methods.fetch_user_data().then(function(fetched_user_data){
+                      dbOperations.methods.insertInto_user_data(fetched_user_data, user_data_with_everything, genres)
+                    })
+                    
                   })
-    	    			})
-    	    		})
-    	    	})
-    	    }) 
+                })
+              })
+            })
+          }) 
+        }
+  
+  if (req.query["saved_songs"] != undefined){
+      spotifyOperations.methods.get_user_id(global_access_token).then(function(fromResolve){
+        spotifyOperations.methods.get_user_saved_songs(fromResolve, global_access_token, global_eventcode).then(function(user_data){
+          spotifyOperations.methods.get_track_features(user_data, global_access_token).then(function(user_data_with_audio_feature){
+                spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, global_access_token).then(function(user_data_with_everything){
+                  dbOperations.methods.get_genres(global_eventcode).then(function(genres){
+                    dbOperations.methods.fetch_user_data().then(function(fetched_user_data){
+                      dbOperations.methods.insertInto_user_data(fetched_user_data, user_data_with_everything, genres)
+                    })
+                    
+                  })
+                })
+              })
+        })
+      })
+  }
+  
 
-	}
+  if (req.query["playlists"] != undefined){
+    var playlist = [req.query["playlists"] + ''];
+    spotifyOperations.methods.get_user_id(global_access_token).then(function(fromResolve){
+      spotifyOperations.methods.get_user_playlist_songs(fromResolve, playlist, global_access_token, global_eventcode).then(function(user_data){
+        spotifyOperations.methods.get_track_features(user_data, global_access_token).then(function(user_data_with_audio_feature){
+                spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, global_access_token).then(function(user_data_with_everything){
+                  dbOperations.methods.get_genres(global_eventcode).then(function(genres){
+                    dbOperations.methods.fetch_user_data().then(function(fetched_user_data){
+                      dbOperations.methods.insertInto_user_data(fetched_user_data, user_data_with_everything, genres)
+                    })
+                    
+                  })
+                })
+              })
+      })
+    })
+  }
+      }
+    })
+  })
+
+	
+  
+  
+  
 	res.render(__dirname + '/public/pages/dashboard.pug')
-
 })
 
 app.get('/dashboard.pug', function(req, res){
@@ -127,7 +182,6 @@ app.get('/dashboard.pug', function(req, res){
 app.get('/importedsongs.pug', function(req, res){
 	console.log('current state' + global_state)
   res.render(__dirname + '/public/pages/importedsongs.pug')
-  
 })
 app.get('/djprofile.pug', function(req, res){
 	console.log('current state' + global_state)

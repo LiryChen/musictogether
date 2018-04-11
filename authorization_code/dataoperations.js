@@ -64,22 +64,53 @@ var methods = {
             })
           })
         },
-    insertInto_user_data: function(user_data, genres){
+     fetch_user_data: function(){
+          const client = new Client();
+          return new Promise(function(resolve, reject){
+            client.connect().then(() =>{
+              var sql = 'SELECT song_name FROM user_data'
+              client.query(sql).then(function(events){
+                var result = events.rows.reduce(function(map, obj) {
+                  map[obj.song_name] = obj.song_name;
+                  return map;
+                  }, {});
+                resolve(result);
+              })
+            })
+          })
+        },   
+    insertInto_user_data: function(fetched_user_data, user_data, genres){
         	const client = new Client();
       		client.connect().then(() =>{
       			for (track_val in user_data.data){
-      				for(genre in genres){
-      					if (user_data.data[track_val].song_genres.includes(genres[genre].toLowerCase())){
-      						var sql = 'INSERT INTO public.user_data VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
-      						var current_val = user_data.data[track_val]
-      						var params = [current_val.user_id, current_val.event_code,current_val.song_name, current_val.song_artist, current_val.song_popularity, current_val.song_danceability, current_val.song_tempo, current_val.song_genres];
-      						client.query(sql, params);
-      						break;
-      					}
-      				}
-      				continue
+              console.log(fetched_user_data[user_data.data[track_val].song_name])
+              if(fetched_user_data[user_data.data[track_val].song_name] == undefined){
+        				for(genre in genres){
+        					if (user_data.data[track_val].song_genres != undefined && user_data.data[track_val].song_genres.includes(genres[genre].toLowerCase())){
+        						var sql = 'INSERT INTO public.user_data VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
+        						var current_val = user_data.data[track_val]
+        						var params = [current_val.user_id, current_val.event_code,current_val.song_name, current_val.song_artist, current_val.song_popularity, current_val.song_danceability, current_val.song_tempo, current_val.song_genres];
+        						client.query(sql, params);
+        						break;
+        					}
+        				}
+        				continue
+            }
+            //has already been added:
+            //console.log(fetched_user_data[user_data.data[track_val].song_name])
       			}
       		})
-        }
+        },
+    hasAlreadyInputted : function(user_id){
+    const client = new Client();
+    return new Promise(function(resolve, reject){
+      client.connect().then(() =>{
+        var sql = 'SELECT COUNT(user_id) FROM user_data WHERE user_id = $1'
+        client.query(sql, [user_id]).then(function(id_count){
+          resolve(id_count.rows[0].count)
+        })
+      })
+    })
+  }
 };
 exports.methods = methods;
