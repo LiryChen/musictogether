@@ -79,12 +79,10 @@ var methods = {
             })
           })
         },   
-    insertInto_user_data: function(fetched_user_data, user_data, genres){
+    insertInto_user_data: function(user_data, genres){
         	const client = new Client();
       		client.connect().then(() =>{
       			for (track_val in user_data.data){
-              console.log(fetched_user_data[user_data.data[track_val].song_name])
-              if(fetched_user_data[user_data.data[track_val].song_name] == undefined){
         				for(genre in genres){
         					if (user_data.data[track_val].song_genres != undefined && user_data.data[track_val].song_genres.includes(genres[genre].toLowerCase())){
         						var sql = 'INSERT INTO public.user_data VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
@@ -95,7 +93,6 @@ var methods = {
         					}
         				}
         				continue
-            }
             //has already been added:
             //console.log(fetched_user_data[user_data.data[track_val].song_name])
       			}

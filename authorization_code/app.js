@@ -48,7 +48,11 @@ app.get('/', function(req, res){
 })
 
 app.get('/db', function(req, res){
-  dbOperations.methods.retrieve_user_data(global_eventcode).then(function(fromResolve){
+  const client = new Client();
+    client.connect().then(() =>{
+      var sql = "DELETE FROM user_data WHERE ctid IN (SELECT ctid FROM (SELECT ctid, ROW_NUMBER() OVER( PARTITION BY user_id, song_name ORDER BY  user_id ) AS row_num FROM user_data ) t WHERE t.row_num > 1 );"
+      client.query(sql).then(function(fromResolve){
+        dbOperations.methods.retrieve_user_data(global_eventcode).then(function(fromResolve){
     var temp = {"data": []}
     for (row in fromResolve.rows){
       temp.data.push({
@@ -63,6 +67,10 @@ app.get('/db', function(req, res){
     temp = JSON.stringify(temp)
     res.send(temp)
   })
+      })
+      
+    })
+  
 })
 
 app.get('/host', function(req, res){
@@ -111,16 +119,14 @@ app.get('/userinput', function(req, res){
 
   spotifyOperations.methods.get_user_id(global_access_token).then(function(id){
     dbOperations.methods.hasAlreadyInputted(id).then(function(num_user_ids){
-      if (num_user_ids == 0){ //change for testing
+    if (num_user_ids == 0){//change for testing
         if (req.query["top_songs"] != undefined){
           spotifyOperations.methods.get_user_id(global_access_token).then(function(fromResolve){
             spotifyOperations.methods.get_user_music_data(fromResolve, global_access_token, global_eventcode).then(function(user_data){
               spotifyOperations.methods.get_track_features(user_data, global_access_token).then(function(user_data_with_audio_feature){
                 spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, global_access_token).then(function(user_data_with_everything){
                   dbOperations.methods.get_genres(global_eventcode).then(function(genres){
-                    dbOperations.methods.fetch_user_data().then(function(fetched_user_data){
-                      dbOperations.methods.insertInto_user_data(fetched_user_data, user_data_with_everything, genres)
-                    })
+                      dbOperations.methods.insertInto_user_data(user_data_with_everything, genres)
                     
                   })
                 })
@@ -135,9 +141,7 @@ app.get('/userinput', function(req, res){
           spotifyOperations.methods.get_track_features(user_data, global_access_token).then(function(user_data_with_audio_feature){
                 spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, global_access_token).then(function(user_data_with_everything){
                   dbOperations.methods.get_genres(global_eventcode).then(function(genres){
-                    dbOperations.methods.fetch_user_data().then(function(fetched_user_data){
-                      dbOperations.methods.insertInto_user_data(fetched_user_data, user_data_with_everything, genres)
-                    })
+                      dbOperations.methods.insertInto_user_data(user_data_with_everything, genres)
                     
                   })
                 })
@@ -154,17 +158,14 @@ app.get('/userinput', function(req, res){
         spotifyOperations.methods.get_track_features(user_data, global_access_token).then(function(user_data_with_audio_feature){
                 spotifyOperations.methods.get_artist_genres(user_data_with_audio_feature, global_access_token).then(function(user_data_with_everything){
                   dbOperations.methods.get_genres(global_eventcode).then(function(genres){
-                    dbOperations.methods.fetch_user_data().then(function(fetched_user_data){
-                      dbOperations.methods.insertInto_user_data(fetched_user_data, user_data_with_everything, genres)
-                    })
-                    
+                      dbOperations.methods.insertInto_user_data(user_data_with_everything, genres)
                   })
                 })
               })
       })
     })
   }
-      }
+}
     })
   })
 
@@ -189,6 +190,7 @@ app.get('/djprofile.pug', function(req, res){
 })
 app.get('/smartplaylist.pug', function(req, res){
 	console.log('current state' + global_state)
+  
   res.render(__dirname + '/public/pages/smartplaylist.pug', {eventtype: global_eventtype})
 })
 app.get('/login.pug', function(req, res){
