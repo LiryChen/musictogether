@@ -1,0 +1,112 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    meta(name='description', content='')
+    meta(name='author', content='')
+    title Music Together
+    // Bootstrap Core CSS
+    link(href='../vendor/bootstrap/css/bootstrap.min.css', rel='stylesheet')
+    // MetisMenu CSS
+    link(href='../vendor/metisMenu/metisMenu.min.css', rel='stylesheet')
+    // Custom CSS
+    link(href='../dist/css/sb-admin-2.css', rel='stylesheet')
+    // Custom Fonts
+    link(href='../vendor/font-awesome/css/font-awesome.min.css', rel='stylesheet', type='text/css')
+    // HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries
+    // WARNING: Respond.js doesn't work if you view the page via file://
+    //
+      if lt IE 9
+      script(src='https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js')
+      script(src='https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js')
+  body
+    #wrapper
+      // Navigation
+      nav.navbar.navbar-default.navbar-static-top(role='navigation', style='margin-bottom: 0')
+        .navbar-header
+          button.navbar-toggle(type='button', data-toggle='collapse', data-target='.navbar-collapse')
+            span.sr-only Toggle navigation
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+          a.navbar-brand(href='dashboard.pug') Music Together 
+        ul.nav.navbar-top-links.navbar-right
+          li.dropdown
+            a.dropdown-toggle(data-toggle='dropdown', href='#')
+              i.fa.fa-user.fa-fw
+              i.fa.fa-caret-down
+            ul.dropdown-menu.dropdown-user
+              li
+                a(href='#')
+                  i.fa.fa-user.fa-fw
+                  |  User Profile
+              li
+                a(href='#')
+                  i.fa.fa-gear.fa-fw
+                  |  Settings
+              li.divider
+              li
+                a(href='login.pug')
+                  i.fa.fa-sign-out.fa-fw
+                  |  Logout
+            // /.dropdown-user
+          // /.dropdown
+        .navbar-default.sidebar(role='navigation')
+          .sidebar-nav.navbar-collapse
+            ul#side-menu.nav
+              li.sidebar-search
+                .input-group.custom-search-form
+                  input.form-control(type='text', placeholder='Search...')
+                  span.input-group-btn
+                    button.btn.btn-default(type='button')
+                      i.fa.fa-search
+                // /input-group
+              li
+                a(href='dashboard.pug')
+                  i.fa.fa-dashboard.fa-fw
+                  |  Dashboard
+              li
+                a(href='importedsongs.pug')
+                  i.fa.fa-table.fa-fw
+                  |  Imported Songs
+              li
+                a(href='djprofile.pug')
+                  i.fa.fa-edit.fa-fw
+                  |  DJ Profile
+              li
+                a(href='smartplaylist.pug')
+                  i.fa.fa-play-circle-o.fa-fw
+                  |  Smart Playlist
+          // /.sidebar-collapse
+        // /.navbar-static-side
+      #page-wrapper
+        .row
+          .col-lg-12
+            h1.page-header Smart Playlist
+        .row
+          .col-lg-12
+            .embed-container
+              if eventtype == 'Club'
+                iframe(src='https://open.spotify.com/embed/user/xinthecity/playlist/4dyA4CQZ2Sh5xaB0Rxjnaa', width='300', height='380', frameborder='0', allowtransparency='true', allow='encrypted-media')
+              else if eventtype == 'House Party'
+                iframe(src='https://open.spotify.com/embed/user/12153386187/playlist/1QYBHwyg32qqXNGoT90BdG', width='300', height='380', frameborder='0', allowtransparency='true', allow='encrypted-media')
+              else if eventtype == 'Wedding'
+                iframe(src='https://open.spotify.com/embed/user/docxx214/playlist/5LkslaA3rvL7HrOI3tsPVu', width='300', height='380', frameborder='0', allowtransparency='true', allow='encrypted-media')
+              else if eventtype == 'Road Trip'
+                iframe(src= 'https://open.spotify.com/embed/user/12171203502/playlist/5xOFH8Ja8Acw7l80292YPt', width='900', height='900', frameborder='0', allowtransparency='true', allow='encrypted-media')
+              else if eventtype == 'Bar mitzvah'
+                iframe(src='https://open.spotify.com/embed/user/22karetc/playlist/77hHbjvGsKMSDvtHNXpQIW', width='300', height='380', frameborder='0', allowtransparency='true', allow='encrypted-media')
+
+              else
+                p 'Oops, something happened'
+      // /#wrapper
+      // jQuery
+      script(src='../vendor/jquery/jquery.min.js')
+      // Bootstrap Core JavaScript
+      script(src='../vendor/bootstrap/js/bootstrap.min.js')
+      // Metis Menu Plugin JavaScript
+      script(src='../vendor/metisMenu/metisMenu.min.js')
+      // Custom Theme JavaScript
+      script(src='../dist/js/sb-admin-2.js')
