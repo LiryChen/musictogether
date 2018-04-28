@@ -1,18 +1,24 @@
+
+
 <!DOCTYPE html>
 <html>
   <head>
     <title>Place Autocomplete</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
+
     <style>
       /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
+       * element that contains the map. 
+
+       Google Map API - Autocomplete address and store the data to the DB
+        Need to install XAMPP then run on browser */
       #map {
-        height: 100%;
+        height: 70%;
       }
       /* Optional: Makes the sample page fill the window. */
       html, body {
-        height: 100%;
+        height: 70%;
         margin: 0;
         padding: 0;
       }
@@ -69,7 +75,7 @@
         margin-left: 12px;
         padding: 0 11px 0 13px;
         text-overflow: ellipsis;
-        width: 400px;
+        width: 300px;
       }
 
       #pac-input:focus {
@@ -80,47 +86,73 @@
         color: #fff;
         background-color: #4d90fe;
         font-size: 25px;
-        font-weight: 500;
+        font-weight: 300;
         padding: 6px 12px;
       }
     </style>
   </head>
   <body>
+
+    <?php  
+      if(isset($_POST['submit']))
+      {
+        $name=$_POST['name'];
+        $lat=$_POST['lat'];
+        $lng=$_POST['lng'];
+        $location=$_POST['location'];
+        $query="INSERT INTO map (name,place_Lat,place_Lng,place_Location) 
+                            VALUES ('$name','$lat','$lng','$location')";
+
+        if(mysqli_query($con,$query)){ //CHANGE IT TO THE DB FILE NAME!!!!!
+            echo "<div class='alert alert-success'>Place inserted in Database</div>";
+        }
+    }
+
+    ?>
+    
+
+
+
     <div class="pac-card" id="pac-card">
       <div>
         <div id="title">
           Autocomplete search
         </div>
         <div id="type-selector" class="pac-controls">
-          <input type="radio" name="type" id="changetype-all" checked="checked">
-          <label for="changetype-all">All</label>
 
-          <input type="radio" name="type" id="changetype-establishment">
-          <label for="changetype-establishment">Establishments</label>
-
-          <input type="radio" name="type" id="changetype-address">
-          <label for="changetype-address">Addresses</label>
-
-          <input type="radio" name="type" id="changetype-geocode">
-          <label for="changetype-geocode">Geocodes</label>
         </div>
-        <div id="strict-bounds-selector" class="pac-controls">
-          <input type="checkbox" id="use-strict-bounds" value="">
-          <label for="use-strict-bounds">Strict Bounds</label>
-        </div>
+
       </div>
       <div id="pac-container">
+          Event Name:
+        <input type ="text" name = "name" class="form-control"><br>
+        <input type="hidden" name="lat" id = "lat">
+        <input type="hidden" name="lng" id = "lng">
+        <input type="hidden" name="location" id = "location">
+
         <input id="pac-input" type="text"
             placeholder="Enter a location">
       </div>
     </div>
-    <div id="map"></div>
+<!--     <div id="map"></div>
     <div id="infowindow-content">
       <img src="" width="30" height="30" id="place-icon">
       <span id="place-name"  class="title"></span><br>
-      <span id="place-address"></span>
+      <span id="place-address"></span> -->
+      <div id="map" style="height: 500px;width: 700px"></div>
 
-    <input type="submit" name="submit" value = "Save" >  
+
+    <input type="submit" name="submit" value = "Click and Save the Location!" class="form-control btn btn-primary">
+      <style>
+      input[type=submit] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        background-color: #3CBC8D;
+        color: white;
+        box-sizing: border-box; }
+    </style>
+
     </div>
 
 
@@ -131,7 +163,7 @@
 
       function initMap() {
         var map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: 42.3601, lng: 71.0589},
+          center: {lat: 42.3601, lng: -71.0589},
           zoom: 13
         });
         var card = document.getElementById('pac-card');
@@ -156,6 +188,9 @@
           anchorPoint: new google.maps.Point(0, -29)
         });
 
+        //Saving the accurate addresses to Database
+
+
         autocomplete.addListener('place_changed', function() {
           infowindow.close();
           marker.setVisible(false);
@@ -176,6 +211,17 @@
           }
           marker.setPosition(place.geometry.location);
           marker.setVisible(true);
+
+          var item_Lat = place.geometry.location.lat();
+          var item_Lng = place.geometry.location.lng();
+          var item_Location = place.formatted_address;
+          //alert("*** Lat = "+item_Lat+" *** Lang = "+item_Lng+" *** Location ="+item_Location);
+
+          //Store the information to DB here. Depends on the column name of it
+          $("#lat").val(item_Lat);
+          $("#lng").val(item_Lng);
+          $("#location").val(item.Location);
+
 
           var address = '';
           if (place.address_components) {
